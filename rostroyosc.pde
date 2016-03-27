@@ -51,10 +51,10 @@ void setup() {
 
   fuente = loadFont("ArialMT-48.vlw");
 
-  // Obtiene info
+  // Obtiene datos
   oscp5 = new OscP5(this, 12000);
-  // Envia info
-  dir = new NetAddress("127.0.0.1", 6448);
+  // Envia datos
+  dir = new NetAddress("127.0.0.1", 12000);
 
   // Create the OpenCV object
   caraCV = new OpenCV(this, cam.width / scale, cam.height / scale);
@@ -62,13 +62,12 @@ void setup() {
   narizCV = new OpenCV(this, cam.width / scale, cam.height / scale);
   bocaCV = new OpenCV(this, cam.width / scale, cam.height / scale);
 
-  // Which "cascade" are we going to use?
+  // Archivos de cascada
   caraCV.loadCascade(OpenCV.CASCADE_FRONTALFACE);
   // ojosCV.loadCascade(OpenCV.CASCADE_EYE);
   // ojosCV.loadCascade("haarcascade_eye_tree_eyeglasses.xml");
   ojosCV.loadCascade("haarcascade_mcs_eyepair_small.xml");
   // ojosCV.loadCascade("haarcascade_mcs_righteye.xml");
-
   narizCV.loadCascade(OpenCV.CASCADE_NOSE);
   bocaCV.loadCascade(OpenCV.CASCADE_MOUTH);
 
@@ -189,6 +188,7 @@ void draw() {
                      bocaDatos[2] + " h-" + bocaDatos[3],
                  bocaDatos[0], bocaDatos[1] + bocaDatos[3] + 30);
             rect(bocaDatos[0], bocaDatos[1], bocaDatos[2], bocaDatos[3]);
+            sendData();
           } else {
             bocaB = false;
           }
@@ -209,10 +209,11 @@ void draw() {
     bocaB = false;
   }
   dibujarIconos();
-  println("Cara : ", caraB);
-  println("Ojos : ", ojosB);
-  println("Nariz : ", narizB);
-  println("Boca : ", bocaB);
+
+  //println("Cara : ", caraB);
+  //println("Ojos : ", ojosB);
+  //println("Nariz : ", narizB);
+  //println("Boca : ", bocaB);
 }
 
 void dibujarIconos() {
@@ -282,28 +283,54 @@ void keyPressed() {
 void mousePressed() { sendData(); }
 
 void sendData() {
-  OscMessage myMessage = new OscMessage("/wek/inputs");
-  myMessage.add((float)caraDatos[2]);
-  myMessage.add((float)caraDatos[3]);
-  myMessage.add((float)ojosDatos[2]);
-  myMessage.add((float)ojosDatos[3]);
-  myMessage.add((float)narizDatos[2]);
-  myMessage.add((float)narizDatos[3]);
-  myMessage.add((float)bocaDatos[2]);
-  myMessage.add((float)bocaDatos[3]);
-  oscp5.send(myMessage, dir);
-  println("Mensaje:", myMessage.get(0).floatValue());
-  println("Mensaje:", myMessage.get(1).floatValue());
-  println("Mensaje:", myMessage.get(2).floatValue());
-  println("Mensaje:", myMessage.get(3).floatValue());
-  println("Mensaje:", myMessage.get(4).floatValue());
-  println("Mensaje:", myMessage.get(5).floatValue());
-  println("Mensaje:", myMessage.get(6).floatValue());
-  println("Mensaje:", myMessage.get(7).floatValue());
-}
+  OscMessage msjCara = new OscMessage("/datos/cara/");
+  msjCara.add((int)caraDatos[0]);//x Cara
+  msjCara.add((int)caraDatos[1]);//y Cara
+  msjCara.add((int)caraDatos[2]);//ancho Cara
+  msjCara.add((int)caraDatos[3]);//alto Cara
+  oscp5.send( msjCara, dir);
+OscMessage msjOjos = new OscMessage("/datos/ojos/");
+  msjOjos.add((int)ojosDatos[0]);// x Ojos
+  msjOjos.add((int)ojosDatos[1]);//y Ojos
+  msjOjos.add((int)ojosDatos[2]);// ancho Ojos
+  msjOjos.add((int)ojosDatos[3]);//alto Ojos
+  oscp5.send(msjOjos, dir);
+OscMessage msjNariz = new OscMessage("/datos/nariz/");
+  msjNariz.add((int)narizDatos[0]);//x Nariz
+  msjNariz.add((int)narizDatos[1]);//y Nariz
+  msjNariz.add((int)narizDatos[2]);//ancho Nariz
+  msjNariz.add((int)narizDatos[3]);//alto Nariz
+  oscp5.send(msjNariz, dir);
+OscMessage msjBoca = new OscMessage("/datos/boca/");
+  msjBoca.add((int)bocaDatos[0]);//x Boca
+  msjBoca.add((int)bocaDatos[1]);//y Boca
+  msjBoca.add((int)bocaDatos[2]);//ancho Boca
+  msjBoca.add((int)bocaDatos[3]);//alto Boca
+  oscp5.send(msjBoca, dir);
 
-void oscEvent(OscMessage theOscMessage) {
-  /* print the address pattern and the typetag of the received OscMessage */
-  print("### received an osc message.");
-  print(" addrpattern: " + theOscMessage.addrPattern());
+//Imprimir Los Mensajes
+//Cara
+  println("/datos/cara/:", msjCara.get(0).intValue());
+  println("/datos/cara/:", msjCara.get(1).intValue());
+  println("/datos/cara/:", msjCara.get(2).intValue());
+  println("/datos/cara/:", msjCara.get(3).intValue());
+  println("####TypeTag:", msjCara.typetag());
+//Ojos
+  println("/datos/ojos/:", msjOjos.get(0).intValue());
+  println("/datos/ojos/:", msjOjos.get(1).intValue());
+  println("/datos/ojos/:", msjOjos.get(2).intValue());
+  println("/datos/ojos/:", msjOjos.get(3).intValue());
+  println("####TypeTag:", msjOjos.typetag());
+//Nariz
+  println("/datos/nariz/:", msjNariz.get(0).intValue());
+  println("/datos/nariz/:", msjNariz.get(1).intValue());
+  println("/datos/nariz/:", msjNariz.get(2).intValue());
+  println("/datos/nariz/:", msjNariz.get(3).intValue());
+  println("####TypeTag:", msjNariz.typetag());
+//Boca
+  println("/datos/boca/:", msjBoca.get(0).intValue());
+  println("/datos/boca/:", msjBoca.get(1).intValue());
+  println("/datos/boca/:", msjBoca.get(2).intValue());
+  println("/datos/boca/:", msjBoca.get(3).intValue());
+  println("####TypeTag:", msjBoca.typetag());
 }

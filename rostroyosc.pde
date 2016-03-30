@@ -83,8 +83,7 @@ void draw() {
   // ObtenerDatos de camara
   cam.read();
   // Copiar contenido a la imagen escalada
-  smaller.copy(cam, 0, 0, cam.width, cam.height, 0, 0, smaller.width,
-               smaller.height);
+  smaller.copy(cam, 0, 0, cam.width, cam.height, 0, 0, smaller.width,smaller.height);
   smaller.updatePixels();
 
   caraCV.loadImage(smaller);
@@ -102,9 +101,8 @@ void draw() {
   // Proceso de crear una paleta de color
   // fill(#00ff00);
   // ellipse(width/2, height-height/20, 5,5);
-  colorMuestra = tomarMuestra( (width / 2) /2+30, height - 80, 0);
+  colorMuestra = tomarMuestra( (width / 2) /2, height - 50, 0);
   sendData(0);
-
 
   if (caras.length != 0) {
     caraB = true;
@@ -123,7 +121,7 @@ void draw() {
       rect(caraDatos[0], caraDatos[1], caraDatos[2], caraDatos[3]);
 
 
-      sendData(1);
+      //sendData(1);
 
       // Dentro de la cara hay ojos
       if ((ojos.length != 0) &&
@@ -140,11 +138,11 @@ void draw() {
         fill(#ffffff);
         textSize(16);
         text("Ojos: x-" + ojosDatos[0] + " y-" + ojosDatos[1] + " w-" +ojosDatos[2] + " h-" + ojosDatos[3],ojosDatos[0], ojosDatos[1] - 30);
-        strokeWeight(5);
         stroke(cProceso);
+        strokeWeight(5);
         noFill();
         rect(ojosDatos[0], ojosDatos[1], ojosDatos[2], ojosDatos[3]);
-        sendData(2);
+        //sendData(2);
         // Dentro de la cara hay una nariz
         if ((nariz.length != 0) &&
             ((nariz[0].x * scale > caraDatos[0]) &&
@@ -167,7 +165,7 @@ void draw() {
           stroke(cProceso);
           noFill();
           rect(narizDatos[0], narizDatos[1], narizDatos[2], narizDatos[3]);
-          sendData(3);
+          //sendData(3);
           // Dentro de la cara hay una boca
           if ((boca.length != 0) &&
               ((boca[0].x * scale > caraDatos[0]) &&
@@ -190,7 +188,10 @@ void draw() {
             stroke(cProceso);
             noFill();
             rect(bocaDatos[0], bocaDatos[1], bocaDatos[2], bocaDatos[3]);
-
+            sendData(0);
+            sendData(1);
+            sendData(2);
+            sendData(3);
             sendData(4);
           } else {
             bocaB = false;
@@ -220,18 +221,21 @@ int tomarMuestra(int x_, int y_, int numMu_) {
   int muest_ = cam.get(x_, y_ );
   TColor colorM = TColor.newHex(hex(muest_,6));
   println("Muestra",colorM);
-  TColor blendCol = colorM.getSaturated(3.5);
-
-  noFill();
-  strokeWeight(1);
-  stroke(#ff0000);
-  ellipseMode(CENTER);
-  ellipse(x_, y_, 5, 5);
-  fill(blendCol.toARGB());
+    TColor lightCol = colorM.getLightened(.52);
+    lightCol = lightCol.getSaturated(.6);
+    //lightCol = colorM.getLightened(.10);
+//    lightCol = colorM.getBlended(satCol,15 );
+    //int promCol =  (satCol.toARGB()+  lightCol.toARGB()) /2;
+  //noFill();
+  //strokeWeight(1);
+  //stroke(#ff0000);
+  //ellipseMode(CENTER);
+  //ellipse(x_, y_, 5, 5);
+  fill(lightCol.toARGB());
   noStroke();
-  rect(+100, +50, 100, 30);
+  rect(20, 50, 50, 30);
   //println("##Muestra",muest_);
-  return blendCol.toARGB();
+  return lightCol.toARGB();
 }
 
 void dibujarIconos() {

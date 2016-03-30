@@ -6,6 +6,10 @@ import processing.opengl.*;
 import processing.video.*; 
 import gab.opencv.*; 
 import java.awt.Rectangle; 
+import toxi.color.*; 
+import toxi.color.theory.*; 
+import toxi.util.datatypes.*; 
+import java.util.Iterator; 
 import oscP5.*; 
 import netP5.*; 
 
@@ -19,6 +23,10 @@ import java.io.OutputStream;
 import java.io.IOException; 
 
 public class rostroyosc extends PApplet {
+
+
+
+
 
 
 
@@ -56,7 +64,7 @@ boolean caraB = false, ojosB = false, narizB = false, bocaB = false;
 
 int scale = 4;
 
-int colorMuestra ;
+int colorMuestra;
 
 int numMuestras = 1;
 
@@ -77,7 +85,7 @@ public void setup() {
   // Obtiene datos
   oscp5 = new OscP5(this, 12000);
   // Envia datos
-  dir = new NetAddress("127.0.1.1", 12000);
+  dir = new NetAddress("127.0.2.1", 12000);
   // Create the OpenCV object
   caraCV = new OpenCV(this, cam.width / scale, cam.height / scale);
   ojosCV = new OpenCV(this, cam.width / scale, cam.height / scale);
@@ -98,10 +106,11 @@ public void setup() {
 
 public void draw() {
   background(0);
-  //ObtenerDatos de camara
+  // ObtenerDatos de camara
   cam.read();
   // Copiar contenido a la imagen escalada
-  smaller.copy(cam, 0, 0, cam.width, cam.height, 0, 0, smaller.width,smaller.height);
+  smaller.copy(cam, 0, 0, cam.width, cam.height, 0, 0, smaller.width,
+               smaller.height);
   smaller.updatePixels();
 
   caraCV.loadImage(smaller);
@@ -114,35 +123,33 @@ public void draw() {
   ojos = ojosCV.detect();
   nariz = narizCV.detect();
   boca = bocaCV.detect();
-//Imagen de la Camara
+  // Imagen de la Camara
   image(cam, 0, 0);
-//Proceso de crear una paleta de color
-  //fill(#00ff00);
-  //ellipse(width/2, height-height/20, 5,5);
-  colorMuestra = get(width/2, height - height/20);
+  // Proceso de crear una paleta de color
+  // fill(#00ff00);
+  // ellipse(width/2, height-height/20, 5,5);
+  colorMuestra = tomarMuestra( (width / 2) /2+30, height - 80, 0);
+  sendData(0);
 
-  //fill(colorMuestra);
-  //noStroke();
-  //rect(50,50, width/10,80);
-  sendDataC();
 
-  if (caras != null) {
+  if (caras.length != 0) {
     caraB = true;
     for (int car = 0; car < caras.length; car++) {
       caraDatos[0] = caras[car].x * scale;      // ubicacion de cara x
       caraDatos[1] = caras[car].y * scale;      // ubicacion de cara y
       caraDatos[2] = caras[car].width * scale;  // ancho de cara
       caraDatos[3] = caras[car].height * scale; // alto de cara
-    noStroke();
-     fill(0xffffffff);
-            textSize(16);
-      text("Cara: x-" + caraDatos[0] + " y-" + caraDatos[1] + " w-" +
-               caraDatos[2] + " h-" + caraDatos[3],
-           caraDatos[0], caraDatos[1] - 30);
+      noStroke();
+      fill(0xffffffff);
+      textSize(16);
+      text("Cara: x-" + caraDatos[0] + " y-" + caraDatos[1] + " w-" +caraDatos[2] + " h-" + caraDatos[3],caraDatos[0], caraDatos[1] - 30);
       strokeWeight(5);
       stroke(cProceso);
       noFill();
       rect(caraDatos[0], caraDatos[1], caraDatos[2], caraDatos[3]);
+
+
+      sendData(1);
 
       // Dentro de la cara hay ojos
       if ((ojos.length != 0) &&
@@ -157,14 +164,13 @@ public void draw() {
         ojosDatos[3] = ojos[0].height * scale; // alto de ojo
         noStroke();
         fill(0xffffffff);
-            textSize(16);
-        text("Ojos: x-" + ojosDatos[0] + " y-" + ojosDatos[1] + " w-" +
-                 ojosDatos[2] + " h-" + ojosDatos[3],
-             ojosDatos[0], ojosDatos[1] - 30);
-         strokeWeight(5);
-         stroke(cProceso);
-         noFill();
+        textSize(16);
+        text("Ojos: x-" + ojosDatos[0] + " y-" + ojosDatos[1] + " w-" +ojosDatos[2] + " h-" + ojosDatos[3],ojosDatos[0], ojosDatos[1] - 30);
+        strokeWeight(5);
+        stroke(cProceso);
+        noFill();
         rect(ojosDatos[0], ojosDatos[1], ojosDatos[2], ojosDatos[3]);
+        sendData(2);
         // Dentro de la cara hay una nariz
         if ((nariz.length != 0) &&
             ((nariz[0].x * scale > caraDatos[0]) &&
@@ -181,15 +187,13 @@ public void draw() {
           narizDatos[3] = nariz[0].height * scale; // alto de ojo
           noStroke();
           fill(0xffffffff);
-            textSize(16);
-          text("Nariz: x-" + narizDatos[0] + " y-" + narizDatos[1] + " w-" +
-                   narizDatos[2] + " h-" + narizDatos[3],
-               narizDatos[0] - 200, narizDatos[1] + narizDatos[3] - 30);
-           strokeWeight(5);
-           stroke(cProceso);
-           noFill();
+          textSize(16);
+          text("Nariz: x-" + narizDatos[0] + " y-" + narizDatos[1] + " w-" + narizDatos[2] + " h-" + narizDatos[3], narizDatos[0] - 200, narizDatos[1] + narizDatos[3] - 30);
+          strokeWeight(5);
+          stroke(cProceso);
+          noFill();
           rect(narizDatos[0], narizDatos[1], narizDatos[2], narizDatos[3]);
-
+          sendData(3);
           // Dentro de la cara hay una boca
           if ((boca.length != 0) &&
               ((boca[0].x * scale > caraDatos[0]) &&
@@ -207,15 +211,13 @@ public void draw() {
             fill(0xffffffff);
             textSize(16);
 
-            text("Boca: x-" + bocaDatos[0] + " y-" + bocaDatos[1] + " w-" +
-                     bocaDatos[2] + " h-" + bocaDatos[3],
-                 bocaDatos[0], bocaDatos[1] + bocaDatos[3] + 30);
-             strokeWeight(5);
-             stroke(cProceso);
-             noFill();
+            text("Boca: x-" + bocaDatos[0] + " y-" + bocaDatos[1] + " w-" +bocaDatos[2] + " h-" + bocaDatos[3], bocaDatos[0], bocaDatos[1] + bocaDatos[3] + 30);
+            strokeWeight(5);
+            stroke(cProceso);
+            noFill();
             rect(bocaDatos[0], bocaDatos[1], bocaDatos[2], bocaDatos[3]);
 
-            sendData();
+            sendData(4);
           } else {
             bocaB = false;
           }
@@ -230,23 +232,36 @@ public void draw() {
       }
     } // Final del For loop de las caras
   } else {
+
     caraB = false;
     ojosB = false;
     narizB = false;
     bocaB = false;
+    sendData(5);
   }
   dibujarIconos();
+}
 
+public int tomarMuestra(int x_, int y_, int numMu_) {
+  int muest_ = cam.get(x_, y_ );
+  TColor colorM = TColor.newHex(hex(muest_,6));
+  println("Muestra",colorM);
+  TColor blendCol = colorM.getSaturated(3.5f);
 
-  //println("Cara : ", caraB);
-  //println("Ojos : ", ojosB);
-  //println("Nariz : ", narizB);
-  //println("Boca : ", bocaB);
+  noFill();
+  strokeWeight(1);
+  stroke(0xffff0000);
+  ellipseMode(CENTER);
+  ellipse(x_, y_, 5, 5);
+  fill(blendCol.toARGB());
+  noStroke();
+  rect(+100, +50, 100, 30);
+  //println("##Muestra",muest_);
+  return blendCol.toARGB();
 }
 
 public void dibujarIconos() {
-  PImage carab, carar, carav, ojob, ojor, ojov, narizr, narizb, narizv, bocab,
-      bocar, bocav;
+  PImage carab, carar, carav, ojob, ojor, ojov, narizr, narizb, narizv, bocab,bocar, bocav;
   carav = loadImage("cara00v.png");
   carab = loadImage("cara00b.png");
   carar = loadImage("cara00r.png");
@@ -262,16 +277,16 @@ public void dibujarIconos() {
   bocab = loadImage("boca3b.png");
   bocar = loadImage("boca3r.png");
   bocav = loadImage("boca3v.png");
-  int ran = round(random(25800,28999));
+  int ran = round(random(25800, 28999));
   int margen = 40;
 
   translate(30, height / 2 - height / 5);
   pushMatrix();
 
   fill(0xffffffff);
-  String txt = "1/"+ ran;
+  String txt = "1/" + ran;
   textSize(10);
-   text(txt,520 ,320 );
+  text(txt, 520, 320);
   scale(.2f);
   if (caraB == true) {
     image(carav, 0, margen);
@@ -307,74 +322,92 @@ public void dibujarIconos() {
 public void keyPressed() {
   println("Muestra Guardada");
   PImage muestra = createImage(caraDatos[2], caraDatos[3], RGB);
-  muestra.copy(cam, caraDatos[0], caraDatos[1], caraDatos[2], caraDatos[3], 0,
-               0, caraDatos[2], caraDatos[2]);
+  muestra.copy(cam, caraDatos[0], caraDatos[1], caraDatos[2], caraDatos[3], 0,0, caraDatos[2], caraDatos[2]);
   muestra.updatePixels();
   muestra.save("muestra-0.jpg");
   println("Muestra Guardada");
 }
 
+public void sendData(int msjNum) {
 
-public void sendData() {
-  OscMessage msjCara = new OscMessage("/datos/cara/");
-  msjCara.add((int)caraDatos[0]);//x Cara
-  msjCara.add((int)caraDatos[1]);//y Cara
-  msjCara.add((int)caraDatos[2]);//ancho Cara
-  msjCara.add((int)caraDatos[3]);//alto Cara
-  oscp5.send( msjCara, dir);
-OscMessage msjOjos = new OscMessage("/datos/ojos/");
-  msjOjos.add((int)ojosDatos[0]);// x Ojos
-  msjOjos.add((int)ojosDatos[1]);//y Ojos
-  msjOjos.add((int)ojosDatos[2]);// ancho Ojos
-  msjOjos.add((int)ojosDatos[3]);//alto Ojos
-  oscp5.send(msjOjos, dir);
-OscMessage msjNariz = new OscMessage("/datos/nariz/");
-  msjNariz.add((int)narizDatos[0]);//x Nariz
-  msjNariz.add((int)narizDatos[1]);//y Nariz
-  msjNariz.add((int)narizDatos[2]);//ancho Nariz
-  msjNariz.add((int)narizDatos[3]);//alto Nariz
-  oscp5.send(msjNariz, dir);
-OscMessage msjBoca = new OscMessage("/datos/boca/");
-  msjBoca.add((int)bocaDatos[0]);//x Boca
-  msjBoca.add((int)bocaDatos[1]);//y Boca
-  msjBoca.add((int)bocaDatos[2]);//ancho Boca
-  msjBoca.add((int)bocaDatos[3]);//alto Boca
-  oscp5.send(msjBoca, dir);
-//Imprimir Los Mensajes
-/*/Cara
-  println("/datos/cara/:", msjCara.get(0).intValue());
-  println("/datos/cara/:", msjCara.get(1).intValue());
-  println("/datos/cara/:", msjCara.get(2).intValue());
-  println("/datos/cara/:", msjCara.get(3).intValue());
-  println("####TypeTag:", msjCara.typetag());
-//Ojos
-  println("/datos/ojos/:", msjOjos.get(0).intValue());
-  println("/datos/ojos/:", msjOjos.get(1).intValue());
-  println("/datos/ojos/:", msjOjos.get(2).intValue());
-  println("/datos/ojos/:", msjOjos.get(3).intValue());
-  println("####TypeTag:", msjOjos.typetag());
-//Nariz
-  println("/datos/nariz/:", msjNariz.get(0).intValue());
-  println("/datos/nariz/:", msjNariz.get(1).intValue());
-  println("/datos/nariz/:", msjNariz.get(2).intValue());
-  println("/datos/nariz/:", msjNariz.get(3).intValue());
-  println("####TypeTag:", msjNariz.typetag());
-//Boca
-  println("/datos/boca/:", msjBoca.get(0).intValue());
-  println("/datos/boca/:", msjBoca.get(1).intValue());
-  println("/datos/boca/:", msjBoca.get(2).intValue());
-  println("/datos/boca/:", msjBoca.get(3).intValue());
-  println("####TypeTag:", msjBoca.typetag());
-*/
-}
-
-public void sendDataC() {
+switch(msjNum){
+case 0 :
     OscMessage msjColor = new OscMessage("/datos/color/");
-      msjColor.add((int)colorMuestra);//Color Muestra
-      oscp5.send(msjColor, dir);
-  //Color
-    println("/datos/color/:", msjColor.get(0).intValue());
-    println("####TypeTag:", msjColor.typetag());
+    msjColor.add((int)colorMuestra); // Color Muestra
+    oscp5.send(msjColor, dir);
+    // Color
+//    println("/datos/color/");
+    //println("####TypeTag:", msjColor.typetag());
+break;
+case 1:
+  OscMessage msjCara = new OscMessage("/datos/cara/");
+  msjCara.add((int)caraDatos[0]); // x Cara
+  msjCara.add((int)caraDatos[1]); // y Cara
+  msjCara.add((int)caraDatos[2]); // ancho Cara
+  msjCara.add((int)caraDatos[3]); // alto Cara
+  oscp5.send(msjCara, dir);
+  //println("/datos/cara/");
+break;
+case 2:
+OscMessage msjOjos = new OscMessage("/datos/ojos/");
+  msjOjos.add((int)ojosDatos[0]); // x Ojos
+  msjOjos.add((int)ojosDatos[1]); // y Ojos
+  msjOjos.add((int)ojosDatos[2]); // ancho Ojos
+  msjOjos.add((int)ojosDatos[3]); // alto Ojos
+  oscp5.send(msjOjos, dir);
+  //println("/datos/ojos/");
+break;
+case 3:
+OscMessage msjNariz = new OscMessage("/datos/nariz/");
+  msjNariz.add((int)narizDatos[0]); // x Nariz
+  msjNariz.add((int)narizDatos[1]); // y Nariz
+  msjNariz.add((int)narizDatos[2]); // ancho Nariz
+  msjNariz.add((int)narizDatos[3]); // alto Nariz
+  oscp5.send(msjNariz, dir);
+  //println("/datos/nariz/");
+break;
+case 4:
+OscMessage msjBoca = new OscMessage("/datos/boca/");
+  msjBoca.add((int)bocaDatos[0]); // x Boca
+  msjBoca.add((int)bocaDatos[1]); // y Boca
+  msjBoca.add((int)bocaDatos[2]); // ancho Boca
+  msjBoca.add((int)bocaDatos[3]); // alto Boca
+  oscp5.send(msjBoca, dir);
+  //println("/datos/boca/");
+break;
+case 5:
+OscMessage msjVacio = new OscMessage("/datos/null/");
+  msjVacio.add((int)0); // x Boca
+  oscp5.send(msjVacio, dir);
+  //println("/datos/null/");
+break;
+}
+  // Imprimir Los Mensajes
+  /*/Cara
+    println("/datos/cara/:", msjCara.get(0).intValue());
+    println("/datos/cara/:", msjCara.get(1).intValue());
+    println("/datos/cara/:", msjCara.get(2).intValue());
+    println("/datos/cara/:", msjCara.get(3).intValue());
+    println("####TypeTag:", msjCara.typetag());
+  //Ojos
+    println("/datos/ojos/:", msjOjos.get(0).intValue());
+    println("/datos/ojos/:", msjOjos.get(1).intValue());
+    println("/datos/ojos/:", msjOjos.get(2).intValue());
+    println("/datos/ojos/:", msjOjos.get(3).intValue());
+    println("####TypeTag:", msjOjos.typetag());
+  //Nariz
+    println("/datos/nariz/:", msjNariz.get(0).intValue());
+    println("/datos/nariz/:", msjNariz.get(1).intValue());
+    println("/datos/nariz/:", msjNariz.get(2).intValue());
+    println("/datos/nariz/:", msjNariz.get(3).intValue());
+    println("####TypeTag:", msjNariz.typetag());
+  //Boca
+    println("/datos/boca/:", msjBoca.get(0).intValue());
+    println("/datos/boca/:", msjBoca.get(1).intValue());
+    println("/datos/boca/:", msjBoca.get(2).intValue());
+    println("/datos/boca/:", msjBoca.get(3).intValue());
+    println("####TypeTag:", msjBoca.typetag());
+  */
 }
   public void settings() {  size(640, 480); }
   static public void main(String[] passedArgs) {

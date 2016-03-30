@@ -59,7 +59,7 @@ void setup() {
   // Obtiene datos
   oscp5 = new OscP5(this, 12000);
   // Envia datos
-  dir = new NetAddress("127.0.2.1", 12000);
+  dir = new NetAddress("127.0.1.1", 12000);
   // Create the OpenCV object
   caraCV = new OpenCV(this, cam.width / scale, cam.height / scale);
   ojosCV = new OpenCV(this, cam.width / scale, cam.height / scale);

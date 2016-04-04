@@ -76,7 +76,11 @@ int[] narizDatos = new int[4]; // x, y ,w, h//
 
 public void setup() {
   
+<<<<<<< HEAD
   // Start capturing
+=======
+  // Captura
+>>>>>>> 35572b0e0798495b6929e7480fc38853df1b9ef7
   cam = new Capture(this, 640, 480, "/dev/video0");
   cam.start();
 
@@ -85,7 +89,11 @@ public void setup() {
   // Obtiene datos
   oscp5 = new OscP5(this, 12000);
   // Envia datos
+<<<<<<< HEAD
   dir = new NetAddress("127.0.2.1", 12000);
+=======
+  dir = new NetAddress("127.0.1.1", 12000);
+>>>>>>> 35572b0e0798495b6929e7480fc38853df1b9ef7
   // Create the OpenCV object
   caraCV = new OpenCV(this, cam.width / scale, cam.height / scale);
   ojosCV = new OpenCV(this, cam.width / scale, cam.height / scale);

@@ -54,7 +54,7 @@ void setup() {
   // Captura
 //  println(Capture.list());
   //cam = new Capture(this, 640, 480, "/dev/video0");
-  cam = new Capture(this, 640, 480, "/dev/video1");
+  cam = new Capture(this, 640, 480, "/dev/video0");
   cam.start();
   fuente = loadFont("ArialMT-48.vlw");
   // Recibe datos
@@ -106,8 +106,8 @@ int tomarMuestra(int x_, int y_, int numMu_) {
   int muest_ = cam.get(x_, y_ );
   TColor colorM = TColor.newHex(hex(muest_,6));
   //println("Muestra",colorM);
-    TColor lightCol = colorM.getLightened(.52);
-    lightCol = lightCol.getSaturated(.6);
+    TColor lightCol = colorM.getLightened(.32);
+    lightCol = lightCol.getSaturated(.5);
     //lightCol = colorM.getLightened(.10);
 //    lightCol = colorM.getBlended(satCol,15 );
     //int promCol =  (satCol.toARGB()+  lightCol.toARGB()) /2;
@@ -280,13 +280,13 @@ void generarEtiqueta(int num){
   m_b = loadShape("mujerb.svg");
   m_r = loadShape("mujerr.svg");
 */
-int ran = round(random(0,17));
+int ran = round(random(0,8));
 
 //PImage h_b, h_r;
 //PImage m_b, m_r;
 PShape cara;
 String  caraname = "c-"+ran+".svg";
-//println(caraname);
+println(caraname);
 cara = loadShape(caraname);
 //h_b = loadImage("cara1b.png");
 //h_r = loadShape("hombrer.svg");
@@ -301,7 +301,7 @@ cara = loadShape(caraname);
     float cDW = caraDatos[2];
     float cDH = caraDatos[3];
     tint(255,120);
-    
+
     shape(cara, cDX, cDY, cDW, cDH);
     //image(h_b, (cDX+cDW/2)-h_b.width/4,(cDY)-(cDW/2)*.5, 50, 50);
   //}else if(num == 1){
@@ -331,9 +331,9 @@ void dibujarIconos() {
   carab = loadImage("cara00b.png");
   carar = loadImage("cara00r.png");
 
-  ojob = loadImage("ojob.png");
-  ojor = loadImage("ojor.png");
-  ojov = loadImage("ojov.png");
+  ojob = loadImage("ojo3b.png");
+  ojor = loadImage("ojo3r.png");
+  ojov = loadImage("ojo3v.png");
 
   narizb = loadImage("narizb.png");
   narizr = loadImage("narizr.png");

@@ -17,8 +17,7 @@ Debajo de la nariz detecta finalmente la nariz y envia los datos obtenidos por o
 OscP5. http://www.sojamo.de/libraries/oscP5/#installation</br>
 NetP5. http://www.sojamo.de/libraries/oscP5/#installation</br>
 Rectangle. Incluido en la instalación de Java.</br>
-
+</p>
 ![alt tag](https://github.com/ricardoglez/RostroyOSC/blob/master/orquidea-ejemplo2condetector01.jpg)
 
-</p>
 </body>

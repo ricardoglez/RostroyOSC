@@ -39,6 +39,7 @@ public class rostroyosc extends PApplet {
 
 
 //Librerias de comunicacion OPENCV
+
 OscP5 oscp5;
 NetAddress dir;
 // Library object

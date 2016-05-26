@@ -11,10 +11,9 @@ import netP5.*;
 import com.dhchoi.CountdownTimer;
 import com.dhchoi.CountdownTimerService;
 //Librerias de comunicacion OPENCV
-
 OscP5 oscp5;
 NetAddress dir;
-// Library object
+//Library object
 OpenCV caraCV;
 OpenCV ojosCV;
 OpenCV narizCV;
@@ -66,7 +65,7 @@ int rand ;
 void setup() {
   size(640, 480);
   // Captura
-  timer = CountdownTimerService.getNewCountdownTimer(this).configure(4000, 5000);
+  timer = CountdownTimerService.getNewCountdownTimer(this).configure(4000, 10000);
   timerS = CountdownTimerService.getNewCountdownTimer(this).configure(4000, 5000);
   //println(Capture.list());
   //cam = new Capture(this, 640, 480, "/dev/video0");
@@ -155,7 +154,10 @@ void draw() {
   //Dibujar Rectangulos y datos del
   dibujarAnalisis();
   dibujarIconos();
-
+  pushMatrix();
+  translate(-20, -100);
+    revisarTimer();
+  popMatrix();
   //image(capaEtiquetas, 0, 0);
 }
 
@@ -172,7 +174,7 @@ void dibujarAnalisis() {
       caraDatos[1] = caras[car].y * scale;      // ubicacion de cara y
       caraDatos[2] = caras[car].width * scale;  // ancho de cara
       caraDatos[3] = caras[car].height * scale; // alto de cara
-      if ( timerS.getTimeLeftUntilFinish() > 2000  || timer.getTimeLeftUntilFinish() > 2000  ) {
+      if ( timerS.getTimeLeftUntilFinish() > 1000  || timer.getTimeLeftUntilFinish() > 1000  ) {
         textSize(16);
         fill(#ffffff);
         text("Cara: x-" + caraDatos[0] + " y-" + caraDatos[1] + " w-" +caraDatos[2] + " h-" + caraDatos[3],
@@ -181,6 +183,7 @@ void dibujarAnalisis() {
          stroke(#ffffff);
          noFill();
          rect(caraDatos[0], caraDatos[1], caraDatos[2], caraDatos[3]);
+        // println(" ####mas de 1-- TS: " ,timerS.getTimeLeftUntilFinish(), "T: ",timer.getTimeLeftUntilFinish() );
       }
 
       // Dentro de la cara hay ojos
@@ -194,7 +197,7 @@ void dibujarAnalisis() {
         ojosDatos[1] = ojos[0].y * scale;      // ubicacion de ojo y
         ojosDatos[2] = ojos[0].width * scale;  // ancho de ojo
         ojosDatos[3] = ojos[0].height * scale; // alto de ojo
-        if ( timerS.getTimeLeftUntilFinish() > 2000  || timer.getTimeLeftUntilFinish() > 2000  ) {
+        if ( timerS.getTimeLeftUntilFinish() > 1000  || timer.getTimeLeftUntilFinish() > 1000  ) {
           fill(#ffffff);
           textSize(16);
           text("Ojos: x-" + ojosDatos[0] + " y-" + ojosDatos[1] + " w-" +ojosDatos[2] + " h-" + ojosDatos[3],
@@ -217,7 +220,7 @@ void dibujarAnalisis() {
           narizDatos[1] = nariz[0].y * scale;      // ubicacion de ojo y
           narizDatos[2] = nariz[0].width * scale;  // ancho de ojo
           narizDatos[3] = nariz[0].height * scale; // alto de ojo
-          if ( timerS.getTimeLeftUntilFinish() > 2000  || timer.getTimeLeftUntilFinish() > 2000  ) {
+          if ( timerS.getTimeLeftUntilFinish() > 1000  || timer.getTimeLeftUntilFinish() > 1000  ) {
             fill(#ffffff);
             textSize(16);
             text("Nariz: x-" + narizDatos[0] + " y-" + narizDatos[1] + " w-" + narizDatos[2] + " h-" + narizDatos[3], narizDatos[0] - 200,
@@ -240,7 +243,7 @@ void dibujarAnalisis() {
             bocaDatos[2] = boca[0].width * scale;  // ancho de ojo
             bocaDatos[3] = boca[0].height * scale; // alto de ojo
 
-            if ( timerS.getTimeLeftUntilFinish() > 2000  || timer.getTimeLeftUntilFinish() > 2000  ) {
+            if ( timerS.getTimeLeftUntilFinish() > 1000  || timer.getTimeLeftUntilFinish() > 1000  ) {
               fill(#ffffff);
               textSize(16);
               text("Boca: x-" + bocaDatos[0] + " y-" + bocaDatos[1] + " w-" +bocaDatos[2]
@@ -250,16 +253,15 @@ void dibujarAnalisis() {
                 noFill();
                 rect(bocaDatos[0], bocaDatos[1], bocaDatos[2], bocaDatos[3]);
             }
-              if(contador != 3){
-                revisarTimer();
-              } else{
+              if(contador == 3){
                 tint(#ffffff, 255);
                 sendData(1);
                 sendData(2);
                 sendData(3);
                 sendData(4);
               }
-            }//Fin de proceo de boca
+            }
+            //Fin de proceo de boca
             else {//
             bocaB = false;
         }}//Fin Nariz
@@ -286,20 +288,36 @@ void dibujarAnalisis() {
 
 void revisarTimer(){
   //funcion si no esta corriendo el timer
-  if (!timer.isRunning() && !timerS.isRunning()) {
+  //Revisar Timer 0
+  if( (!timer.isRunning() && !timerS.isRunning()) && (caraB && ojosB && narizB && bocaB )) {
     timer.start();
     contador =1;
-  }  else if ( (timer.isRunning() && !timerS.isRunning()) &&
-              timer.getTimeLeftUntilFinish() > 2000  ) {//Si esta corriendo el timer0 y tiene mas de 2 segundos para acabar
+    println("Conteo= ", contador);
+}  else if ( (timer.isRunning() && !timerS.isRunning()) &&
+              (timer.getTimeLeftUntilFinish() < 10000 && timer.getTimeLeftUntilFinish() > 7000) ) {//Si esta corriendo el timer0 y tiene mas de 2 segundos para acabar
       tint(255, 120);
       textFont(fuente);
       textSize(20);
       fill(#ffffff);
       textAlign(1);
+      
+      text("Analizando rasgos para designar sexo.", 20, 20);
+      
+      if ( (timer.getTimeLeftUntilFinish() < 10000 && timer.getTimeLeftUntilFinish() > 9000) ){
       //text(etiqueta[rand], ojosDatos[0], ojosDatos[1]);
-      text("Analizando rasgos para designar sexo.", 20, 50);
+      text("Analizando rasgos para designar sexo.", 20, 20);
+              }
+      if ( (timer.getTimeLeftUntilFinish() < 10000 && timer.getTimeLeftUntilFinish() > 8000) ){
+      //text(etiqueta[rand], ojosDatos[0], ojosDatos[1]);
+      text("Analizando rasgos para designar sexo..", 20, 20);
+              }      
+                    if ( (timer.getTimeLeftUntilFinish() < 10000 && timer.getTimeLeftUntilFinish() > 7000) ){
+      //text(etiqueta[rand], ojosDatos[0], ojosDatos[1]);
+      text("Analizando rasgos para designar sexo..", 20, 20);
+              }
+      println("##Analizando entre 0 y 3 S' " ,timer.getTimeLeftUntilFinish() );
   } else if ( (timer.isRunning() && !timerS.isRunning()) &&
-              timer.getTimeLeftUntilFinish() < 3000 && timer.getTimeLeftUntilFinish() >1000 ) {//Si esta corriendo el timer0 y tiene mas de 2 segundos para acabar
+              (timer.getTimeLeftUntilFinish() < 7000 && timer.getTimeLeftUntilFinish() > 5000) ) {//Si esta corriendo el timer0 y tiene mas de 2 segundos para acabar
       tint(255, 120);
       textFont(fuente1);
       textSize(70);
@@ -307,8 +325,9 @@ void revisarTimer(){
       textAlign(1);
       //text(etiqueta[rand], ojosDatos[0], ojosDatos[1]);
       text(etiqueta[rand],ojosDatos[0]-50, ojosDatos[1]);
+      println("##Etiquetas entre 3 y 5 S' " ,timer.getTimeLeftUntilFinish() );
   } else if ( (timer.isRunning() && !timerS.isRunning()) &&
-              timer.getTimeLeftUntilFinish() < 2000  ) {//Si esta corriendo el timer0 y tiene mas de 2 segundos para acabar
+              (timer.getTimeLeftUntilFinish() < 2200 && timer.getTimeLeftUntilFinish() > 500)  ) {//Si esta corriendo el timer0 y tiene mas de 2 segundos para acabar
       tint(255,0,0, 120);
       textFont(fuente);
       textSize(70);
@@ -320,24 +339,28 @@ void revisarTimer(){
       fill(#ffffff);
       textAlign(1);
       text("Sexo desconocido", 20, 50);
+      println("##ERROR entre 7.8 y 9.5  S' " ,timer.getTimeLeftUntilFinish() );
   }  else if( (timerS.isRunning() && !timer.isRunning() ) &&
-            (timerS.getTimeLeftUntilFinish() > 2000) ) {
+            (timerS.getTimeLeftUntilFinish() < 10000 && timerS.getTimeLeftUntilFinish() < 7000 ) ) {
+      contador = 2;
       tint(255, 120);
       textFont(fuente);
       textSize(20);
       fill(#ffffff);
       textAlign(1);
       text("Analizando rasgos para designar sexo", 20, 50);
+      println("##Analizando +1 S: " ,timerS.getTimeLeftUntilFinish() );
   } else if( (timerS.isRunning() && !timer.isRunning() ) &&
-            (timerS.getTimeLeftUntilFinish() < 3000 && timerS.getTimeLeftUntilFinish() > 2000)  ) {
+            (timerS.getTimeLeftUntilFinish() < 7000 && timerS.getTimeLeftUntilFinish() > 5000)  ) {
       tint(255, 120);
       textFont(fuente1);
       textSize(70);
       fill(#ffffff);
       textAlign(1);
       text(etiqueta[rand], ojosDatos[0]-50, ojosDatos[1]);
+      println("##ETIQUETA entre 3 y 5 S' " ,timerS.getTimeLeftUntilFinish() );
   } else if ( (timerS.isRunning() && !timer.isRunning()) &&
-              timerS.getTimeLeftUntilFinish() < 2000  ) {//Si esta corriendo el timer0 y tiene mas de 2 segundos para acabar
+              timerS.getTimeLeftUntilFinish() < 5000  ) {//Si esta corriendo el timer0 y tiene mas de 2 segundos para acabar
       tint(255,0,0, 120);
       textFont(fuente);
       textSize(70);
@@ -349,8 +372,9 @@ void revisarTimer(){
       fill(#ffffff);
       textAlign(1);
       text("Sexo desconocido", 20, 50);
+      println("##ERROR entre 7.8 y 9 S' " ,timerS.getTimeLeftUntilFinish() );
+      contador = 3;
   }
-
 }
 
 void onFinishEvent(CountdownTimer t) {
@@ -411,6 +435,7 @@ int generarEtiqueta(int num) {
   shape(cara, cDX, cDY, cDW, cDH);
   return num;
 }
+
 /*//////////////////////////////////////////////////////
  Funcion que dibuja los iconos y cambia el color si ya
  se detecto este elemento en el proceso de cv
@@ -434,11 +459,11 @@ void dibujarIconos() {
   bocar = loadImage("boca3r.png");
   int margen = 40;
 
-  translate(30, height / 2 - height / 5);
+  translate(20, height / 2 - height / 3);
   pushMatrix();
 
   fill(#ffffff);
-  scale(.2);
+  scale(.5);
   if (caraB == true) {
     image(carab, 0, margen);
   } else {
@@ -447,25 +472,25 @@ void dibujarIconos() {
   // image(carab, 0, margen);
 
   if (ojosB == true) {
-    image(ojob, 0, margen * 8);
+    image(ojob, 0, margen * 4.5);
   } else {
-    image(ojor, 0, margen * 8);
+    image(ojor, 0, margen * 4.5);
   }
   // image(ojob, 0, margen * 8);
 
   if (narizB == true) {
-    image(narizb, 0, margen * 16);
+    image(narizb, 0, margen * 8);
   } else {
-    image(narizr, 0, margen * 16);
+    image(narizr, 0, margen * 8);
   }
   // image(narizb, 0, margen * 16);
 
   if (bocaB == true) {
-    image(bocab, 0, margen * 24);
+    image(bocab, 0, margen * 12);
   } else {
-    image(bocar, 0, margen * 24);
+    image(bocar, 0, margen * 12);
   }
-  // image(bocab, 0, margen * 24);
+  // image(bocab, 0, margen * 30);
 
   popMatrix();
 }

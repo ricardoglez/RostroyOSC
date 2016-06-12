@@ -2,9 +2,6 @@
  Clase Rostros
  ////////////////////////////////////////////////////////////////////7*/
 class Rostros {
-  //Librerias de comunicacion OSCP5
-  OscP5 oscp5;
-  NetAddress dir;
   //Objetos OpenCVP5
   OpenCV caraCV;
   OpenCV ojosCV;
@@ -60,11 +57,6 @@ class Rostros {
     cam.start();
     coolv = loadFont("CoolveticaRg-Regular-48.vlw");
     cour = loadFont("Courier10PitchBT-Roman-48.vlw");
-    //textFont(coolv);
-    // Recibe datos
-    oscp5 = new OscP5(parent, 12000);
-    // Envia datos
-    dir = new NetAddress("127.0.3.1", 12000);
     // Create the OpenCV object
     caraCV = new OpenCV(parent, cam.width / scale, cam.height / scale);
     ojosCV = new OpenCV(parent, cam.width / scale, cam.height / scale);
@@ -307,17 +299,6 @@ class Rostros {
                 noFill();
                 rect(bocaDatos[0]*2, bocaDatos[1]*2, bocaDatos[2]*2, bocaDatos[3]*2);
               }
-              /*//////////////////////////////
-               Si ha iterado mas de 2 veces
-               Envia los datos al sketch de la orquidea
-               */              /////////////////////////////////
-              if (contador >= 2) {
-                //tint(#ffffff, 255);
-                sendData(1);
-                sendData(2);
-                sendData(3);
-                sendData(4);
-              }
             }
             //Fin de proceo de boca
             else {//
@@ -339,8 +320,6 @@ class Rostros {
       ojosB = false;
       narizB = false;
       bocaB = false;
-      //Enviar informacion de error
-      sendData(5);
     }
     popMatrix();
   }
@@ -686,64 +665,6 @@ class Rostros {
   }
 
 
-  /*//////////////////////////////////////////////////////
-   Funcion que envia los datos obtenidos del proceso de CV
-   al sketch de la orquidea
-   */  //////////////////////////////////////////////////////
-  void sendData(int msjNum) {
-    switch(msjNum) {
-    case 0 :
-      OscMessage msjColor = new OscMessage("/datos/color/");
-      msjColor.add((int)colorMuestra); // Color Muestra
-      oscp5.send(msjColor, dir);
-      // Color
-      //    println("/datos/color/");
-      //println("####TypeTag:", msjColor.typetag());
-      break;
-    case 1:
-      OscMessage msjCara = new OscMessage("/datos/cara/");
-      msjCara.add((int)caraDatos[0]); // x Cara
-      msjCara.add((int)caraDatos[1]); // y Cara
-      msjCara.add((int)caraDatos[2]); // ancho Cara
-      msjCara.add((int)caraDatos[3]); // alto Cara
-      oscp5.send(msjCara, dir);
-      //println("/datos/cara/");
-      break;
-    case 2:
-      OscMessage msjOjos = new OscMessage("/datos/ojos/");
-      msjOjos.add((int)ojosDatos[0]); // x Ojos
-      msjOjos.add((int)ojosDatos[1]); // y Ojos
-      msjOjos.add((int)ojosDatos[2]); // ancho Ojos
-      msjOjos.add((int)ojosDatos[3]); // alto Ojos
-      oscp5.send(msjOjos, dir);
-      //println("/datos/ojos/");
-      break;
-    case 3:
-      OscMessage msjNariz = new OscMessage("/datos/nariz/");
-      msjNariz.add((int)narizDatos[0]); // x Nariz
-      msjNariz.add((int)narizDatos[1]); // y Nariz
-      msjNariz.add((int)narizDatos[2]); // ancho Nariz
-      msjNariz.add((int)narizDatos[3]); // alto Nariz
-      oscp5.send(msjNariz, dir);
-      //println("/datos/nariz/");
-      break;
-    case 4:
-      OscMessage msjBoca = new OscMessage("/datos/boca/");
-      msjBoca.add((int)bocaDatos[0]); // x Boca
-      msjBoca.add((int)bocaDatos[1]); // y Boca
-      msjBoca.add((int)bocaDatos[2]); // ancho Boca
-      msjBoca.add((int)bocaDatos[3]); // alto Boca
-      oscp5.send(msjBoca, dir);
-      //println("/datos/boca/");
-      break;
-    case 5:
-      OscMessage msjVacio = new OscMessage("/datos/null/");
-      msjVacio.add((int)0); // x Boca
-      oscp5.send(msjVacio, dir);
-      //println("/datos/null/");
-      break;
-    }
-  }
   /*//////////////////////////////////////////////////////
    Funcion que guarda muestra del rostro del interactor
    */  //////////////////////////////////////////////////////

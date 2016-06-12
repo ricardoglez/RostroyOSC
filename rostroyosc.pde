@@ -6,11 +6,9 @@ import toxi.color.*;
 import toxi.color.theory.*;
 import toxi.util.datatypes.*;
 import java.util.Iterator;
-import oscP5.*;
-import netP5.*;
 import com.dhchoi.CountdownTimer;
 import com.dhchoi.CountdownTimerService;
-//import processing.core.*;
+
 Rostros analisis;
 paletaGen paleta;
 Orquidea orq;
@@ -61,11 +59,17 @@ void draw() {
     randomSeed(0);
     float rand = random(-3.2, 6.2);
     for (int i = 0; i <= numerodefiguras; i ++) {
-
       orq.dibujarBase(orq.vhor0, orq.vvert0, orq.vvert1, orq.vhor1, analisis.caraDatos[3]-i*rand, analisis.caraDatos[2]-i*rand, random(200, 220), orq.paleta[0], -5);
     }
-    popMatrix();
-  }
+    for (int i = 0; i <= numerodefiguras*2; i++) {
+      orq.dibujarMota(orq.anchoM0, orq.altoM0, 2);
+    }
+
+    orq.dibujarPetalo5(orq.vhor0, orq.vvert0, orq.vhor0, orq.vvert0, (orq.anchoP0*rand), (orq.altoP0*rand), random(200, 220), orq.paleta[4], 3);
+    orq.dibujarPetalo2(orq.vhor0, orq.vvert0, orq.vhor0, orq.vvert0, (orq.anchoP0*rand), (orq.altoP1*rand), random(200, 220), orq.paleta[3], 1 );
 
   popMatrix();
+}
+
+popMatrix();
 }

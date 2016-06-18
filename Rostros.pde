@@ -52,7 +52,7 @@ class Rostros {
    */  ////////////////////////////////////////////////////////////////////7
   void setting(int intervalo, int total) {
     timer = CountdownTimerService.getNewCountdownTimer(parent).configure(intervalo, total);
-    //println(Capture.list());
+    println(Capture.list());
     cam = new Capture(parent, 640, 480, "/dev/video0");
     cam.start();
     coolv = loadFont("CoolveticaRg-Regular-48.vlw");

@@ -2,11 +2,15 @@
  Clase Rostros
  ////////////////////////////////////////////////////////////////////7*/
 class Rostros {
+  PImage caraROI;
   //Objetos OpenCVP5
   OpenCV caraCV;
   OpenCV ojosCV;
   OpenCV narizCV;
   OpenCV bocaCV;
+  OpenCV contornos;
+  ArrayList<Contour> contours; // Arreglo variable del numero de contornos
+  Point[] puntos;
   //Timers que controlan el tiempo que aparece la etiqueta y el Error
   CountdownTimer timer;
   //Etiquetas mostradas
@@ -23,8 +27,8 @@ class Rostros {
   PGraphics capaEtiquetas;
   //dato del color muestra
   int colorMuestra;
-  float[][] points = new float[32][2];
-  PVector[] posiciones = new PVector[32]; //
+  float[][] points = new float[36][2];
+  PVector[] posiciones = new PVector[36]; //
   // Arreglos de los datos guardados
   int[] caraDatos = new int[4];  // Orden de Valores de matriz//x, y ,w, h //
   int[] ojosDatos = new int[4];  // x0, y0 ,w0, h0, //x1, y1 ,w1, h1//
@@ -46,14 +50,21 @@ class Rostros {
   Rostros(PApplet parent) {
     this.parent = parent;
   }
+
+  void captureEvent(Capture cam) {
+    cam.read();
+  }
   /* ////////////////////////////////////////////////////////////////////7
    ///Aqui se colocan los valores del intervalo del cronometro que activa las
    etiquetas y envia por ultimo los datos al sketch de la orquidea
    */  ////////////////////////////////////////////////////////////////////7
   void setting(int intervalo, int total) {
     timer = CountdownTimerService.getNewCountdownTimer(parent).configure(intervalo, total);
-    //println(Capture.list());
-    cam = new Capture(parent, 640, 480, "/dev/video0");
+
+    String[] camaras = Capture.list();
+    println(camaras);
+    println(camaras[0]);
+    cam = new Capture(parent, 640, 480, "/dev/video1");
     cam.start();
     coolv = loadFont("CoolveticaRg-Regular-48.vlw");
     cour = loadFont("Courier10PitchBT-Roman-48.vlw");
@@ -68,8 +79,11 @@ class Rostros {
     narizCV.loadCascade(OpenCV.CASCADE_NOSE);
     bocaCV.loadCascade(OpenCV.CASCADE_MOUTH);
     // Make scaled down image y capa de las etiquetas
-    smaller = createImage(caraCV.width, caraCV.height, RGB);
-    capaEtiquetas = createGraphics(cam.width, cam.height);
+
+    smaller = createImage(caraCV.width, caraCV.height, GRAY);
+
+    //capaEtiquetas = createGraphics(cam.width, cam.height);
+
     stroke(#ffffff);
   }
   /*////////////////////////////////////////////////////////////////////7
@@ -78,9 +92,15 @@ class Rostros {
    */  ////////////////////////////////////////////////////////////////////7
   void preprocessing() {
     // ObtenerDatos de camara
+    println("Read Cam", cam.available());
     cam.read();
     // Copiar contenido a la imagen escalada
+
+    println("Copy Content");
+    //smaller.loadPixels();
     smaller.copy(cam, 0, 0, cam.width, cam.height, 0, 0, smaller.width, smaller.height);
+    cam.loadPixels();
+
     smaller.updatePixels();
     //Cargar la imagen de captura escalada
     caraCV.loadImage(smaller);
@@ -92,7 +112,38 @@ class Rostros {
     ojos = ojosCV.detect();
     nariz = narizCV.detect();
     boca = bocaCV.detect();
+
+    println("Preprocessing");
   }
+
+  void preprocessingCont(PImage src, int thresh) {
+    contornos = new OpenCV(parent, src.width, src.height);
+    contornos.loadImage(src);
+    contornos.threshold(thresh);
+    contornos.dilate();
+    contornos.erode();
+    contours = contornos.findContours();
+
+    println("Preprocessing Contornos");
+  }
+  void dibujarContornos(float x_, float y_, float size, float escala) {
+    int i = 0;
+    pushMatrix();
+    translate(x_, y_);
+    scale(escala);
+    stroke(#ffffff);
+    //fill(#ffffff);
+    strokeWeight(size);
+    for (Contour contour : contours) {
+      contour.draw();
+      i++;
+    }
+    i=0;
+    popMatrix();
+
+    println("Dibujar Contornos");
+  }
+
 
   /*//////////////////////////////////////////////////////
    Funcion que Por medio de una muestra de un color de la camara
@@ -105,6 +156,8 @@ class Rostros {
     //println("Muestra",colorM);
     TColor lightCol = colorM.getLightened(.32);
     lightCol = lightCol.getSaturated(.5);
+
+    println("Tomar Muestra Color");
     return lightCol.toARGB();
   }
   /*//////////////////////////////////////////////////////////
@@ -138,45 +191,51 @@ class Rostros {
       break;
     case 1:
       posiciones[8] = new PVector(c[0]*2, c[1]*2);
-      posiciones[9] = new PVector(c[0]*2 + c[2] / 2*2, c[1]*2);
-      posiciones[10] = new PVector(c[0]*2 + c[2]*2, c[1]*2);
-      posiciones[11] = new PVector(c[0]*2 + c[2]*2, c[1]*2 + c[3] / 2*2);
-      posiciones[12] = new PVector(c[0]*2 + c[2]*2, c[1]*2 + c[3]*2);
-      posiciones[13] = new PVector(c[0]*2 + c[2] / 2*2, c[1]*2 + c[3]*2);
-      posiciones[14] = new PVector(c[0]*2, c[1]*2 + c[3]*2);
-      posiciones[15] = new PVector(c[0]*2, c[1]*2 + c[3] / 2 *2 );
-      for (int i = 8; i <= 15; i++) {
+      posiciones[9] = new PVector(c[0]*2 + c[2]/4*2, c[1]*2);
+      posiciones[10] = new PVector(c[0]*2 + c[2]/2*2, c[1]*2);
+      posiciones[11] = new PVector(c[0]*2 + c[2]/2*2 + c[2] /4*2, c[1]*2);
+      posiciones[12] = new PVector(c[0]*2 + c[2]*2, c[1]*2);
+      posiciones[13] = new PVector(c[0]*2 + c[2]*2, c[1]*2 + c[3] / 2*2);
+      posiciones[14] = new PVector(c[0]*2 + c[2]*2, c[1]*2 + c[3]*2);
+      posiciones[15] = new PVector(c[0]*2 + c[2]*2 - c[2]/4*2, c[1]*2 + c[3]*2);
+      posiciones[16] = new PVector(c[0]*2 + c[2] / 2*2, c[1]*2 + c[3]*2);
+      posiciones[17] = new PVector(c[0]*2 + c[2] / 2*2 - c[2]/4*2, c[1]*2 + c[3]*2);
+      posiciones[18] = new PVector(c[0]*2, c[1]*2 + c[3]*2);
+      posiciones[19] = new PVector(c[0]*2, c[1]*2 + c[3] / 2 *2 );
+      for (int i = 8; i <= 19; i++) {
         points[i][0] = posiciones[i].x;
         points[i][1] = posiciones[i].y;
       }
       break;
     case 2:
-      posiciones[16] = new PVector(c[0]*2, c[1]*2);
-      posiciones[17] = new PVector(c[0]*2 + c[2] / 2*2, c[1]*2);
-      posiciones[18] = new PVector(c[0]*2 + c[2]*2, c[1]*2);
-      posiciones[19] = new PVector(c[0]*2 + c[2]*2, c[1]*2 + c[3] / 2*2);
-      posiciones[20] = new PVector(c[0]*2 + c[2]*2, c[1]*2 + c[3]*2);
-      posiciones[21] = new PVector(c[0]*2 + c[2] / 2*2, c[1]*2 + c[3]*2);
-      posiciones[22] = new PVector(c[0]*2, c[1]*2 + c[3]*2);
-      posiciones[23] = new PVector(c[0]*2, c[1]*2 + c[3] / 2 *2 );
-      for (int i = 16; i <= 23; i++) {
+      posiciones[20] = new PVector(c[0]*2, c[1]*2);
+      posiciones[21] = new PVector(c[0]*2 + c[2] / 2*2, c[1]*2);
+      posiciones[22] = new PVector(c[0]*2 + c[2]*2, c[1]*2);
+      posiciones[23] = new PVector(c[0]*2 + c[2]*2, c[1]*2 + c[3] / 2*2);
+      posiciones[24] = new PVector(c[0]*2 + c[2]*2, c[1]*2 + c[3]*2);
+      posiciones[25] = new PVector(c[0]*2 + c[2] / 2*2, c[1]*2 + c[3]*2);
+      posiciones[26] = new PVector(c[0]*2, c[1]*2 + c[3]*2);
+      posiciones[27] = new PVector(c[0]*2, c[1]*2 + c[3] / 2 *2 );
+      for (int i = 20; i <= 27; i++) {
         points[i][0] = posiciones[i].x;
         points[i][1] = posiciones[i].y;
       }
       break;
     case 3:
-      posiciones[24] = new PVector(c[0]*2, c[1]*2);
-      posiciones[25] = new PVector(c[0]*2 + c[2] / 2*2, c[1]*2);
-      posiciones[26] = new PVector(c[0]*2 + c[2]*2, c[1]*2);
-      posiciones[27] = new PVector(c[0]*2 + c[2]*2, c[1]*2 + c[3] / 2*2);
-      posiciones[28] = new PVector(c[0]*2 + c[2]*2, c[1]*2 + c[3]*2);
-      posiciones[29] = new PVector(c[0]*2 + c[2] / 2*2, c[1]*2 + c[3]*2);
-      posiciones[30] = new PVector(c[0]*2, c[1]*2 + c[3]*2);
-      posiciones[31] = new PVector(c[0]*2, c[1]*2 + c[3] / 2 *2 );
-      for (int i = 24; i <= 31; i++) {
+      posiciones[28] = new PVector(c[0]*2, c[1]*2);
+      posiciones[29] = new PVector(c[0]*2 + c[2] / 2*2, c[1]*2);
+      posiciones[30] = new PVector(c[0]*2 + c[2]*2, c[1]*2);
+      posiciones[31] = new PVector(c[0]*2 + c[2]*2, c[1]*2 + c[3] / 2*2);
+      posiciones[32] = new PVector(c[0]*2 + c[2]*2, c[1]*2 + c[3]*2);
+      posiciones[33] = new PVector(c[0]*2 + c[2] / 2*2, c[1]*2 + c[3]*2);
+      posiciones[34] = new PVector(c[0]*2, c[1]*2 + c[3]*2);
+      posiciones[35] = new PVector(c[0]*2, c[1]*2 + c[3] / 2 *2 );
+      for (int i = 28; i <= 35; i++) {
         points[i][0] = posiciones[i].x;
         points[i][1] = posiciones[i].y;
       }
+
+      println("Obtener Pos");
       break;
     }
     /*//////////////////////////////////////////////////////////
@@ -192,12 +251,14 @@ class Rostros {
         float startY = myEdges[i][1];
         float endX = myEdges[i][2];
         float endY = myEdges[i][3];
-        strokeWeight(1);
+        strokeWeight(.7);
         line( startX, startY, endX, endY );
       } else {
         //Error Handler
       }
     }
+
+    println("Delaunay");
     return posiciones;
   }
   /*////////////////////////////////////////////////////
@@ -207,7 +268,7 @@ class Rostros {
    */  ////////////////////////////////////////////////////
   void dibujarAnalisis() {
     pushMatrix();
-    translate(-100,0);
+    translate(-50, 60);
     textFont(coolv);
     if (caras.length != 0) {
       caraB = true;
@@ -227,6 +288,12 @@ class Rostros {
           stroke(#ffffff);
           noFill();
           rect(caraDatos[0]*2, caraDatos[1]*2, caraDatos[2]*2, caraDatos[3]*2);
+          caraROI = cropFace(caraCV.getOutput(), caras[car]);          //image(caraROI, width-caraROI.width, 0);
+          preprocessingCont(caraROI, 122);
+          pushMatrix();
+          translate(0, 0);
+          dibujarContornos(caraDatos[0]*2, caraDatos[1]*2, .6, 6);
+          popMatrix();
           // println(" ####mas de 1-- TS: " ,timer02.getTimeLeftUntilFinish(), "T: ",timer.getTimeLeftUntilFinish() );
         }
         // Dentro de la cara hay ojos
@@ -321,6 +388,8 @@ class Rostros {
       narizB = false;
       bocaB = false;
     }
+
+    println("Dibujar Analisis");
     popMatrix();
   }
   /*/////////////////////////////////////////////////////
@@ -330,7 +399,7 @@ class Rostros {
     PImage err ;
     err = loadImage("errorr.png");
     int ra = int(random(25, 50));
-    
+
     switch(contador) {
     case 0:
       /*/////////////////////////////////////////
@@ -389,7 +458,7 @@ class Rostros {
       } else if ((timer.isRunning()) && (timer.getTimeLeftUntilFinish() < 1900 && timer.getTimeLeftUntilFinish() > 500)  ) {
         fill(#FFDA44);
         noStroke();
-        rect(ojosDatos[0]-50,ojosDatos[1]-80,280,90);
+        rect(ojosDatos[0]-50, ojosDatos[1]-80, 280, 90);
         textFont(cour);
         textSize(90);
         fill(0);
@@ -406,7 +475,6 @@ class Rostros {
         contador = 1;
         timer.stop(CountdownTimer.StopBehavior.STOP_IMMEDIATELY);
         println("Una Vueltaa: +1", timer.getTimeLeftUntilFinish(), contador);
-
       }
       break;
     case 1:
@@ -417,7 +485,7 @@ class Rostros {
        */      /////////////////////////////////////////////////
       if ( (!timer.isRunning()) && (caraB && ojosB && narizB && bocaB )) {
         timer.start();
-        println("Segunda",timer.getTimeLeftUntilFinish(), contador);
+        println("Segunda", timer.getTimeLeftUntilFinish(), contador);
         println("Conteo= ", contador);
         /*/////////////////////////////////////////
          el timer esta avanazando,
@@ -434,7 +502,7 @@ class Rostros {
          si faltan menos de 7s y mas de 5s (osea si han pasado entre 3s y 5s)
          */        /////////////////////////////////////////////////
       } else if ( (timer.isRunning()) && (timer.getTimeLeftUntilFinish() < 7000 && timer.getTimeLeftUntilFinish() > 2000) ) {
-        if(etique == 1){
+        if (etique == 1) {
           etique = 2;
         } else {
           etique = 1;
@@ -467,11 +535,11 @@ class Rostros {
         /*/////////////////////////////////////////
          el timer esta avanazando,
          si faltan menos de 4s y mas de .5s (osea si han pasado entre 6s y 9.5s)
-         *//////////////////////////////////////////////////
+         */        /////////////////////////////////////////////////
       } else if ((timer.isRunning()) && (timer.getTimeLeftUntilFinish() < 2000 && timer.getTimeLeftUntilFinish() > 500)  ) {
         fill(#FFDA44);
         noStroke();
-        rect(ojosDatos[0]-50,ojosDatos[1]-80,280,90);
+        rect(ojosDatos[0]-50, ojosDatos[1]-80, 280, 90);
         textFont(cour);
         textSize(90);
         fill(0);
@@ -497,7 +565,7 @@ class Rostros {
        */      /////////////////////////////////////////////////
       if ( (!timer.isRunning()) && (caraB && ojosB && narizB && bocaB )) {
         timer.start();
-        println("Tercera",timer.getTimeLeftUntilFinish(), contador);
+        println("Tercera", timer.getTimeLeftUntilFinish(), contador);
         println("Conteo= ", contador);
         /*/////////////////////////////////////////
          el timer esta avanazando,
@@ -514,7 +582,7 @@ class Rostros {
          si faltan menos de 7s y mas de 5s (osea si han pasado entre 3s y 5s)
          */        /////////////////////////////////////////////////
       } else if ( (timer.isRunning()) && (timer.getTimeLeftUntilFinish() < 7000 && timer.getTimeLeftUntilFinish() > 2000) ) {        
-        switch(round(random(1,2))) {
+        switch(round(random(1, 2))) {
         case 1:
           textFont(coolv);
           textSize(90);
@@ -546,7 +614,7 @@ class Rostros {
       } else if ((timer.isRunning()) && (timer.getTimeLeftUntilFinish() < 2000 && timer.getTimeLeftUntilFinish() > 500)  ) {
         fill(#FFDA44);
         noStroke();
-        rect(ojosDatos[0]-50,ojosDatos[1]-80,280,90);
+        rect(ojosDatos[0]-50, ojosDatos[1]-80, 280, 90);
         textFont(cour);
         textSize(90);
         fill(0);
@@ -563,6 +631,8 @@ class Rostros {
         contador =3;
         timer.stop(CountdownTimer.StopBehavior.STOP_IMMEDIATELY);
       }
+
+      println("Revisar Timer");
       break;
     }
   }
@@ -577,6 +647,7 @@ class Rostros {
    se detecto este elemento en el proceso de cv
    */  //////////////////////////////////////////////////////
   void dibujarIconos( int cuantos) {
+
     PImage carab, carar, ojob, ojor, narizr, narizb, bocab, bocar;
     /*//////////////////////////////////////////////////////////////
      Esta funcion utiliza iconos
@@ -644,6 +715,8 @@ class Rostros {
       text("x:" + bocaDatos[0]*2 +'\n'+ "y:" + bocaDatos[1]*2 +'\n' + "w:" + bocaDatos[2]*2 + '\n'+"h:" + bocaDatos[3]*2, width/8+width/4+25, -cuantos-150);
       image(bocar, width/8+width/4, -cuantos );
     }
+
+    println("Dibujar Iconos");
     popMatrix();
   }
 
@@ -657,14 +730,23 @@ class Rostros {
       println("Reiniciar");
       contador =0;
       val = true;
-    } else if(contador >= 3 && caraB){
+    } else if (contador >= 3 && caraB) {
       //noStroke();
       val = false;
     }
+
+    println("Revisar Iteraciones");
     return val;
   }
 
+  PImage cropFace(PImage s, Rectangle source) {
+    PImage img = createImage(source.width, source.height, GRAY);
+    img.copy(s, source.x, source.y, source.width, source.height, 0, 0, source.width, source.height);
+    img.updatePixels();
 
+    println("Crop Face");
+    return img;
+  }
   /*//////////////////////////////////////////////////////
    Funcion que guarda muestra del rostro del interactor
    */  //////////////////////////////////////////////////////

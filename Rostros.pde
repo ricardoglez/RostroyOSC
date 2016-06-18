@@ -60,7 +60,6 @@ class Rostros {
    */  ////////////////////////////////////////////////////////////////////7
   void setting(int intervalo, int total) {
     timer = CountdownTimerService.getNewCountdownTimer(parent).configure(intervalo, total);
-
     String[] camaras = Capture.list();
     println(camaras);
     println(camaras[0]);

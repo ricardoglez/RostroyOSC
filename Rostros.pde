@@ -64,7 +64,7 @@ class Rostros {
     String[] camaras = Capture.list();
     println(camaras);
     println(camaras[0]);
-    cam = new Capture(parent, 640, 480, "/dev/video1");
+    cam = new Capture(parent, 640, 480, "/dev/video0");
     cam.start();
     coolv = loadFont("CoolveticaRg-Regular-48.vlw");
     cour = loadFont("Courier10PitchBT-Roman-48.vlw");

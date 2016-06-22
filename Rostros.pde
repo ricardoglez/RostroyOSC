@@ -2,6 +2,10 @@
  Clase Rostros
  ////////////////////////////////////////////////////////////////////7*/
 class Rostros {
+  boolean reiniciado = false;
+  Minim minim;
+  AudioPlayer player;
+  String timeStamp ;
   PImage caraROI;
   //Objetos OpenCVP5
   OpenCV caraCV;
@@ -17,6 +21,7 @@ class Rostros {
   String[] etiqueta = {
     "HOMBRE", "MUJER"
   };
+  boolean takenFace = false;
   PApplet parent;
   //Fuentes
   PFont coolv, cour ;
@@ -49,6 +54,7 @@ class Rostros {
    */  ////////////////////////////////////////////////////////////////////7
   Rostros(PApplet parent) {
     this.parent = parent;
+    minim = new Minim(parent);
   }
 
   void captureEvent(Capture cam) {
@@ -59,9 +65,13 @@ class Rostros {
    etiquetas y envia por ultimo los datos al sketch de la orquidea
    */  ////////////////////////////////////////////////////////////////////7
   void setting(int intervalo, int total) {
+    timeStamp =  nf(day(), 2) + "-"  + nf(hour(), 2) + nf(minute(), 2) + (second());
+    println(timeStamp);
+
     timer = CountdownTimerService.getNewCountdownTimer(parent).configure(intervalo, total);
     String[] camaras = Capture.list();
-    println(camaras);
+    player = minim.loadFile("ia3.mp3");
+    //println(camaras);
     println(camaras[0]);
     cam = new Capture(parent, 640, 480, "/dev/video0");
     cam.start();
@@ -91,11 +101,11 @@ class Rostros {
    */  ////////////////////////////////////////////////////////////////////7
   void preprocessing() {
     // ObtenerDatos de camara
-    println("Read Cam", cam.available());
+    //println("Read Cam", cam.available());
     cam.read();
     // Copiar contenido a la imagen escalada
 
-    println("Copy Content");
+    //println("Copy Content");
     //smaller.loadPixels();
     smaller.copy(cam, 0, 0, cam.width, cam.height, 0, 0, smaller.width, smaller.height);
     cam.loadPixels();
@@ -112,7 +122,7 @@ class Rostros {
     nariz = narizCV.detect();
     boca = bocaCV.detect();
 
-    println("Preprocessing");
+    //println("Preprocessing");
   }
 
   void preprocessingCont(PImage src, int thresh) {
@@ -123,11 +133,11 @@ class Rostros {
     contornos.erode();
     contours = contornos.findContours();
 
-    println("Preprocessing Contornos");
+    //println("Preprocessing Contornos");
   }
   void dibujarContornos(float x_, float y_, float size, float escala) {
     int i = 0;
-    pushMatrix();
+    pushMatrix(); //Cont
     translate(x_, y_);
     scale(escala);
     stroke(#ffffff);
@@ -140,7 +150,7 @@ class Rostros {
     i=0;
     popMatrix();
 
-    println("Dibujar Contornos");
+    //println("Dibujar Contornos");
   }
 
 
@@ -156,7 +166,7 @@ class Rostros {
     TColor lightCol = colorM.getLightened(.32);
     lightCol = lightCol.getSaturated(.5);
 
-    println("Tomar Muestra Color");
+    //println("Tomar Muestra Color");
     return lightCol.toARGB();
   }
   /*//////////////////////////////////////////////////////////
@@ -233,8 +243,7 @@ class Rostros {
         points[i][0] = posiciones[i].x;
         points[i][1] = posiciones[i].y;
       }
-
-      println("Obtener Pos");
+      //println("Obtener Pos");
       break;
     }
     /*//////////////////////////////////////////////////////////
@@ -256,8 +265,7 @@ class Rostros {
         //Error Handler
       }
     }
-
-    println("Delaunay");
+    //println("Delaunay");
     return posiciones;
   }
   /*////////////////////////////////////////////////////
@@ -266,8 +274,8 @@ class Rostros {
    información extraida
    */  ////////////////////////////////////////////////////
   void dibujarAnalisis() {
-    pushMatrix();
-    translate(-50, 60);
+    pushMatrix();//DA
+    translate(150, 80);
     textFont(coolv);
     if (caras.length != 0) {
       caraB = true;
@@ -282,17 +290,17 @@ class Rostros {
          en cualquiera de los dos timers
          Dibuja el texto y el rectangulo referente
          */        /////////////////////////////////
-        if ( timer.getTimeLeftUntilFinish() > 100  ) {
+        if ( timer.getTimeLeftUntilFinish() > 100 && caraB ) {
           strokeWeight(5);
           stroke(#ffffff);
           noFill();
           rect(caraDatos[0]*2, caraDatos[1]*2, caraDatos[2]*2, caraDatos[3]*2);
           caraROI = cropFace(caraCV.getOutput(), caras[car]);          //image(caraROI, width-caraROI.width, 0);
           preprocessingCont(caraROI, 122);
-          pushMatrix();
+          pushMatrix();//c
           translate(0, 0);
           dibujarContornos(caraDatos[0]*2, caraDatos[1]*2, .6, 6);
-          popMatrix();
+          popMatrix();//c
           // println(" ####mas de 1-- TS: " ,timer02.getTimeLeftUntilFinish(), "T: ",timer.getTimeLeftUntilFinish() );
         }
         // Dentro de la cara hay ojos
@@ -387,10 +395,10 @@ class Rostros {
       narizB = false;
       bocaB = false;
     }
-
-    println("Dibujar Analisis");
-    popMatrix();
+    //println("Dibujar Analisis");
+    popMatrix();//DA
   }
+
   /*/////////////////////////////////////////////////////
    Funcion para activar y revisar los tiempos del timer
    */  /////////////////////////////////////////////////////
@@ -398,7 +406,8 @@ class Rostros {
     PImage err ;
     err = loadImage("errorr.png");
     int ra = int(random(25, 50));
-
+    pushMatrix();//rT
+    translate(60, 40);
     switch(contador) {
     case 0:
       /*/////////////////////////////////////////
@@ -419,7 +428,7 @@ class Rostros {
         textSize(45);
         fill(#ffffff);
         textAlign(1);
-        text("Analizando rasgos"+'\n'+"para designar sexo.", 70, 100);
+        text("Analizando rasgos"+'\n'+"para designar sexo.", 70, 700);
         /*/////////////////////////////////////////
          el timer esta avanazando,
          si faltan menos de 7s y mas de 5s (osea si han pasado entre 3s y 5s)
@@ -430,23 +439,23 @@ class Rostros {
           textFont(coolv);
           textSize(90);
           textAlign(1);
-          text(etiqueta[0], 70, 100);
+          text(etiqueta[0], 70, 700);
           textFont(coolv);
           textSize(25);
-          text(ra+"%", 70, 140);
+          text(ra+"%", 70, 600);
           fill(#ffffff);
-          rect(120, 130, ra*5, 10);
+          rect(120, 600, ra*5, 10);
           break;
         case 2:
           textFont(coolv);
           textSize(90);
           textAlign(1);
-          text(etiqueta[1], 70, 100);
+          text(etiqueta[1], 70, 700);
           textFont(coolv);
           textSize(25);
-          text(ra+"%", 70, 140);
+          text(ra+"%", 70, 600);
           fill(#ffffff);
-          rect(120, 130, ra*5, 10);
+          rect(120, 600, ra*5, 10);
           //println("##Etiquetas entre 3 y 5 S' ", contador ,timer.getTimeLeftUntilFinish() );
           break;
         }
@@ -455,23 +464,38 @@ class Rostros {
          si faltan menos de 4s y mas de .5s (osea si han pasado entre 6s y 9.5s)
          */        /////////////////////////////////////////////////
       } else if ((timer.isRunning()) && (timer.getTimeLeftUntilFinish() < 1900 && timer.getTimeLeftUntilFinish() > 500)  ) {
+        if ( player.position() == player.length() )
+        {
+          player.rewind();
+          player.play();
+        } else {
+          player.play();
+        }
         fill(#FFDA44);
         noStroke();
-        rect(ojosDatos[0]-50, ojosDatos[1]-80, 280, 90);
+        rect(ojosDatos[0]-250, ojosDatos[1]+250, 280, 90);
         textFont(cour);
         textSize(90);
         fill(0);
         textAlign(1);
-        text("ERROR", ojosDatos[0]-50, ojosDatos[1]);
-        image(err, ojosDatos[0]+250, ojosDatos[1]-60, 70, 70);
+        text("ERROR", ojosDatos[0]-250, ojosDatos[1]+320);
+        image(err, ojosDatos[0]+40, ojosDatos[1]+270, 70, 70);
         textSize(45);
         fill(#ffffff);
         textAlign(1);
-        text("Sexo desconocido", 70, 100);
+        text("Sexo desconocido", 70, 700);
+        if (contador == 0 && takenFace == false ) {
+          captureFace(timeStamp);
+          takenFace =true;
+        } else if (contador == 0 && takenFace == true ) {
+          //NONE
+          println("none");
+        }
         //println("##ERROR entre 7.8 y 9.5  S' " ,timer.getTimeLeftUntilFinish() );
       } else if (timer.isRunning() && timer.getTimeLeftUntilFinish() <= 500) {
         println("Una Vueltaa: +1", timer.getTimeLeftUntilFinish(), contador);
         contador = 1;
+        takenFace = false;
         timer.stop(CountdownTimer.StopBehavior.STOP_IMMEDIATELY);
         println("Una Vueltaa: +1", timer.getTimeLeftUntilFinish(), contador);
       }
@@ -495,7 +519,7 @@ class Rostros {
         textSize(45);
         fill(#ffffff);
         textAlign(1);
-        text("Analizando rasgos"+'\n'+"para designar sexo.", 70, 100);
+        text("Analizando rasgos"+'\n'+"para designar sexo.", 70, 700);
         /*/////////////////////////////////////////
          el timer esta avanazando,
          si faltan menos de 7s y mas de 5s (osea si han pasado entre 3s y 5s)
@@ -511,23 +535,23 @@ class Rostros {
           textFont(coolv);
           textSize(90);
           textAlign(1);
-          text(etiqueta[0], 70, 100);
+          text(etiqueta[0], 70, 700);
           textFont(coolv);
           textSize(25);
-          text(ra+"%", 70, 140);
+          text(ra+"%", 70, 600);
           fill(#ffffff);
-          rect(120, 130, ra*5, 10);
+          rect(120, 600, ra*5, 10);
           break;
         case 2:
           textFont(coolv);
           textSize(90);
           textAlign(1);
-          text(etiqueta[1], 70, 100);
+          text(etiqueta[1], 70, 700);
           textFont(coolv);
           textSize(25);
-          text(ra+"%", 70, 140);
+          text(ra+"%", 70, 600);
           fill(#ffffff);
-          rect(120, 130, ra*5, 10);
+          rect(120, 600, ra*5, 10);
           //println("##Etiquetas entre 3 y 5 S' ", contador ,timer.getTimeLeftUntilFinish() );
           break;
         }
@@ -537,22 +561,42 @@ class Rostros {
          */        /////////////////////////////////////////////////
       } else if ((timer.isRunning()) && (timer.getTimeLeftUntilFinish() < 2000 && timer.getTimeLeftUntilFinish() > 500)  ) {
         fill(#FFDA44);
+        if ( player.position() == player.length() )
+        {
+          player.rewind();
+          player.play();
+        } else
+        {
+          player.play();
+        }
+        takenFace = false;
+
+        fill(#FFDA44);
         noStroke();
-        rect(ojosDatos[0]-50, ojosDatos[1]-80, 280, 90);
+        rect(ojosDatos[0]-250, ojosDatos[1]+250, 280, 90);
         textFont(cour);
         textSize(90);
         fill(0);
         textAlign(1);
-        text("ERROR", ojosDatos[0]-50, ojosDatos[1]);
-        image(err, ojosDatos[0]+250, ojosDatos[1]-60, 70, 70);
+        text("ERROR", ojosDatos[0]-250, ojosDatos[1]+320);
+        image(err, ojosDatos[0]+40, ojosDatos[1]+270, 70, 70);
         textSize(45);
         fill(#ffffff);
         textAlign(1);
-        text("Sexo desconocido", 70, 100);
+        text("Sexo desconocido", 70, 700);
+        if (contador == 1 && takenFace == false ) {
+          captureFace(timeStamp);
+          takenFace =true;
+        } else if (contador == 1 && takenFace == true ) {
+          //NONE
+          println("none");
+        }
+
         //println("##ERROR entre 7.8 y 9.5  S' " ,timer.getTimeLeftUntilFinish() );
       } else if (timer.isRunning() && timer.getTimeLeftUntilFinish() <= 500) {
         println("Dos Vueltas: +1", timer.getTimeLeftUntilFinish(), contador);
         contador =2;
+        takenFace = false;
         timer.stop(CountdownTimer.StopBehavior.STOP_IMMEDIATELY);
       }
       break;
@@ -575,7 +619,7 @@ class Rostros {
         textSize(45);
         fill(#ffffff);
         textAlign(1);
-        text("Analizando rasgos"+'\n'+"para designar sexo.", 70, 100);
+        text("Analizando rasgos"+'\n'+"para designar sexo.", 70, 700);
         /*/////////////////////////////////////////
          el timer esta avanazando,
          si faltan menos de 7s y mas de 5s (osea si han pasado entre 3s y 5s)
@@ -586,23 +630,23 @@ class Rostros {
           textFont(coolv);
           textSize(90);
           textAlign(1);
-          text(etiqueta[0], 70, 100);
+          text(etiqueta[0], 70, 700);
           textFont(coolv);
           textSize(25);
-          text(ra+"%", 70, 140);
+          text(ra+"%", 70, 600);
           fill(#ffffff);
-          rect(120, 130, ra*5, 10);
+          rect(120, 600, ra*5, 10);
           break;
         case 2:
           textFont(coolv);
           textSize(90);
           textAlign(1);
-          text(etiqueta[1], 70, 100);
+          text(etiqueta[1], 70, 700);
           textFont(coolv);
           textSize(25);
-          text(ra+"%", 70, 140);
+          text(ra+"%", 70, 600);
           fill(#ffffff);
-          rect(120, 130, ra*5, 10);
+          rect(120, 600, ra*5, 10);
           //println("##Etiquetas entre 3 y 5 S' ", contador ,timer.getTimeLeftUntilFinish() );
           break;
         }
@@ -610,30 +654,16 @@ class Rostros {
          el timer esta avanazando,
          si faltan menos de 4s y mas de .5s (osea si han pasado entre 6s y 9.5s)
          */        /////////////////////////////////////////////////
-      } else if ((timer.isRunning()) && (timer.getTimeLeftUntilFinish() < 2000 && timer.getTimeLeftUntilFinish() > 500)  ) {
-        fill(#FFDA44);
-        noStroke();
-        rect(ojosDatos[0]-50, ojosDatos[1]-80, 280, 90);
-        textFont(cour);
-        textSize(90);
-        fill(0);
-        textAlign(1);
-        text("ERROR", ojosDatos[0]-50, ojosDatos[1]);
-        image(err, ojosDatos[0]+250, ojosDatos[1]-60, 70, 70);
-        textSize(45);
-        fill(#ffffff);
-        textAlign(1);
-        text("Sexo desconocido", 70, 100);
-        //println("##ERROR entre 7.8 y 9.5  S' " ,timer.getTimeLeftUntilFinish() );
       } else if (timer.isRunning() && timer.getTimeLeftUntilFinish() <= 500) {
         println("Tres Vueltas: +1", timer.getTimeLeftUntilFinish(), contador);
         contador =3;
+        takenFace = true;
         timer.stop(CountdownTimer.StopBehavior.STOP_IMMEDIATELY);
       }
-
-      println("Revisar Timer");
+      //println("Revisar Timer");
       break;
     }
+    popMatrix();//rt
   }
 
 
@@ -665,7 +695,7 @@ class Rostros {
     bocab = loadImage("bocab.png");
     bocar = loadImage("bocar.png");
     //TODO Modificar Posicion y Color de iconos rojos
-    pushMatrix();
+    pushMatrix();//Iconos
     translate(width/2, height);
     textFont(cour);
     //fill(#ffffff);
@@ -715,8 +745,8 @@ class Rostros {
       image(bocar, width/8+width/4, -cuantos );
     }
 
-    println("Dibujar Iconos");
-    popMatrix();
+    //println("Dibujar Iconos");
+    popMatrix();//iconos
   }
 
   /*//////////////////////////////////////////////////////
@@ -727,14 +757,16 @@ class Rostros {
     boolean val = false;
     if (contador >= 3 && !caraB) {
       println("Reiniciar");
+      reiniciado = true;
       contador =0;
       val = true;
     } else if (contador >= 3 && caraB) {
+      reiniciado = false;
       //noStroke();
       val = false;
     }
 
-    println("Revisar Iteraciones");
+    //println("Revisar Iteraciones");
     return val;
   }
 
@@ -743,20 +775,18 @@ class Rostros {
     img.copy(s, source.x, source.y, source.width, source.height, 0, 0, source.width, source.height);
     img.updatePixels();
 
-    println("Crop Face");
+    //println("Crop Face");
     return img;
   }
   /*//////////////////////////////////////////////////////
    Funcion que guarda muestra del rostro del interactor
    */  //////////////////////////////////////////////////////
-  void keyPressed() {
-    if (key == 'S') {
-      println("Muestra Guardada");
-      PImage muestra = createImage(caraDatos[2], caraDatos[3], RGB);
-      muestra.copy(cam, caraDatos[0], caraDatos[1], caraDatos[2], caraDatos[3], 0, 0, caraDatos[2], caraDatos[2]);
-      muestra.updatePixels();
-      muestra.save("muestra-0.jpg");
-      //println("Muestra Guardada");}
-    }
+  void captureFace( String stamp) {
+    println("Muestra de Cara Guardada");
+    PImage muestra = createImage(caraDatos[2], caraDatos[3], RGB);
+    muestra.copy(cam, caraDatos[0], caraDatos[1], caraDatos[2], caraDatos[3], 0, 0, caraDatos[2], caraDatos[2]);
+    muestra.updatePixels();
+    muestra.save("muestraCara"+"-"+contador+"-"+stamp+".jpg");
+    //println("Muestra Guardada");}
   }
 }

@@ -12,7 +12,8 @@ class Orquidea {
     anchoM0;
   int numerodefiguras;
 
-  Orquidea(int[] paleta_, float vhor0_, float vvert0_, float vhor1_, float vvert1_, float altoSBase_, float anchoSBase_, float altoP0_, float anchoP0_, float altoP1_, float anchoP1_, float altoM0_, 
+  Orquidea(int[] paleta_, float vhor0_, float vvert0_, float vhor1_, float vvert1_,
+  float altoSBase_, float anchoSBase_, float altoP0_, float anchoP0_, float altoP1_, float anchoP1_, float altoM0_, 
     float anchoM0_, int numerodefiguras_) {
     paleta = paleta_;
     vhor0 = vhor0_;
@@ -172,20 +173,26 @@ class Orquidea {
 
   void dibujarMota(float rN_, float r_, float z_ ) {
     float randN = rN_;
-    float r1_ = random(10, 50);
-    float r0_ = random(60, 100);
+    float r1_ = random(1, 7);
+    float r0_ = random(8, 15);
 
     float randD = random(r1_, r0_);
     float radius = r_;
     float radiusNoise, x, y ;
     for (float ang = 0; ang <= 360; ang += random(20, 50)) {
       radiusNoise =  randomGaussian()*randN;
-      float thisRadius = radius + (noise(radiusNoise) * 100);
-      x =  (thisRadius/3 * cos(radians(ang)));
-      y =  (thisRadius/3 * sin(radians(ang)));
+      float thisRadius = radius + (noise(radiusNoise) * r1_);
+      x =  (thisRadius/r0_/2 * cos(radians(ang)));
+      y =  (thisRadius/r0_/2 * sin(radians(ang)));
       noStroke();
-      fill(paleta[round(random(3, 5))], 5);
+      fill(paleta[round(random(3, 5))], 50);
       ellipse(x, y, randD, randD);
     }
   }
+  
+  void captureOrch(String stamp) {
+      println("Muestra de Orquidea Guardada");
+      saveFrame("muestraOrquidea"+"-"+stamp+".jpg");
+      //println("Muestra Guardada");}
+    }
 }
